@@ -1,28 +1,36 @@
+#' Get spatial polygons for specified geography
+#'
+#' @param geography A dataframe
+#' @param state A variable in the dataframe
+#' @return The dataframe with new mean and sum columns
+
+#' @export
+
 get_geoms <- function(geography, state) {
 
     # Get geometry
+    geometry = TRUE
     dat <-
-        suppressMessages(map(state, ~ get_acs(geography = geography,
+        suppressMessages(purrr::map(state, ~ tidycensus::get_acs(geography = geography,
                                               state=.x,
                                               year= 2015,
-                                              geometry = TRUE,
+                                              geometry = geometry,
                                               variables="B01003_001")))
 
     # Store geometries, faster to drop here and use rbindlist below, then rejoin
-    geoms <- map(dat, function(x) unique(dplyr::select(x, GEOID, geometry)))
+    GEOID <- NULL
+    geoms <- purrr::map(dat, function(x) unique(dplyr::select(x, GEOID, geometry)))
 
     col_order <- c("GEOID", "geometry")
     split_ind <-
-        geoms %>%
-        map_lgl(~ any(st_is(.x, c("MULTIPOLYGON"))))
+        purrr::map_lgl(geoms, ~ any(st_is(.x, c("MULTIPOLYGON"))))
 
     # Empty Geometries are gettign dropped here
     split_fixed <-
-        geoms[split_ind] %>%
-        map(~ st_cast(.x, to="POLYGON", warn=FALSE))
+        purrr::map(geoms[split_ind], ~ st_cast(.x, to="POLYGON", warn=FALSE))
 
     tract_geoms <-
-        st_as_sf(data.table::rbindlist(c(split_fixed, geoms[!split_ind])))
+        sf::st_as_sf(data.table::rbindlist(c(split_fixed, geoms[!split_ind])))
 
     return(tract_geoms)
 }

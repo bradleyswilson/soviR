@@ -1,3 +1,15 @@
+#' Get specified social vulnerability variables from the census
+#'
+#' @param geography A dataframe
+#' @param state A variable in the dataframe
+#' @param variables A variable in the dataframe
+#' @param year A variable in the dataframe
+#' @param geometry A variable in the dataframe
+#'
+#' @return The dataframe with new mean and sum columns
+
+#' @export
+
 get_sovi <- function(geography, state = NULL, variables = NULL, year = 2015, geometry = FALSE) {
 
     # Census API codes needed for each SOVI Variable
@@ -80,20 +92,23 @@ get_sovi <- function(geography, state = NULL, variables = NULL, year = 2015, geo
     var_api <- paste(unlist(var_dict[var_loc]), sep=",")
 
     # Get raw data using tidy census
-    dat <-
-        suppressMessages(map(state, ~ get_acs(geography = geography,
+    tmp <-
+        suppressMessages(purrr::map(state, ~ tidycensus::get_acs(geography = geography,
                              state=.x,
                              year= year,
-                             geometry = geometry,
-                             variables = var_api))) %>%
-        bind_rows() %>%
-        pivot_wider(names_from = variable,
-                    values_from = c(estimate, moe))
+                             geometrygeometry = geometry,
+                             variables = var_api)))
+
+    variable <- estimate <- moe <- NULL
+    dat <-
+        tidyr::pivot_wider(dplyr::bind_rows(tmp),
+                           names_from = variable,
+                           values_from = c(estimate, moe))
 
     # Calculate sovi variables from raw data
     dat_sovi <-
-        var_fms[c(1,var_loc+1)] %>%
-        map_dfc(~ tibble(!!parse_expr(.x)))
+        purrr::map_dfc(var_fms[c(1,var_loc+1)], ~ tibble(!!parse_expr(.x)))
+
     names(dat_sovi) <- c("GEOID", variables)
 
     return(dat_sovi)
