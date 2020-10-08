@@ -1,12 +1,12 @@
 #' Get specified social vulnerability variables from the census
 #'
-#' @param geography A dataframe
-#' @param state A variable in the dataframe
-#' @param variables A variable in the dataframe
-#' @param year A variable in the dataframe
-#' @param geometry A variable in the dataframe
+#' @param geography Census geography level
+#' @param state Name of states to get data for
+#' @param variables List of desired SOVI variables
+#' @param year ACS year
+#' @param geometry Are geometries requested
 #'
-#' @return The dataframe with new mean and sum columns
+#' @return The new dataframe
 
 #' @export
 
@@ -96,7 +96,7 @@ get_sovi <- function(geography, state = NULL, variables = NULL, year = 2015, geo
         suppressMessages(purrr::map(state, ~ tidycensus::get_acs(geography = geography,
                              state=.x,
                              year= year,
-                             geometrygeometry = geometry,
+                             geometry = FALSE,
                              variables = var_api)))
 
     variable <- estimate <- moe <- NULL
@@ -110,6 +110,12 @@ get_sovi <- function(geography, state = NULL, variables = NULL, year = 2015, geo
         purrr::map_dfc(var_fms[c(1,var_loc+1)], ~ tibble(!!parse_expr(.x)))
 
     names(dat_sovi) <- c("GEOID", variables)
+
+    if(geometry==TRUE) {
+        geoms <- soviR::get_geoms(geography, state)
+        dat_sovi <- dplyr::right_join(geoms, dat_sovi)
+        names(dat_sovi) <- c("GEOID", variables, "geometry")
+    }
 
     return(dat_sovi)
 }
