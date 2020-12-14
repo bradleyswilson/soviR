@@ -47,7 +47,14 @@ get_sovi <- function(geography, state = NULL, variables = NULL, year = 2015, geo
                      qnoauto_alt = c("B25044_003", "B25044_010", "B25044_001"),
                      qrich200k = c("B19001_017", "B11001_001"),
                      mdgrent_alt = c("B25064_001"),
-                     mhseval_alt = c("B25077_001"))
+                     mhseval_alt = c("B25077_001"),
+                     quninsured = c("B27001_005", "B27001_008", "B27001_011",
+                                    "B27001_014", "B27001_017", "B27001_020",
+                                    "B27001_023", "B27001_026", "B27001_029",
+                                    "B27001_033", "B27001_036", "B27001_039",
+                                    "B27001_042", "B27001_045", "B27001_048",
+                                    "B27001_051", "B27001_054", "B27001_057",
+                                    "B01003_001"))
 
     # Calculation formulas
     var_fms <- list(c("GEOID = dat$GEOID"),
@@ -85,7 +92,14 @@ get_sovi <- function(geography, state = NULL, variables = NULL, year = 2015, geo
                     c("qnoauto_alt =  ((dat$estimate_B25044_003 + dat$estimate_B25044_010)) / dat$estimate_B25044_001"),
                     c("qrich200k = (dat$estimate_B19001_017) / dat$estimate_B11001_001"),
                     c("mdgrent_alt = dat$estimate_B25064_001"),
-                    c("mhseval_alt = dat$estimate_B25077_001"))
+                    c("mhseval_alt = dat$estimate_B25077_001"),
+                    c("quninsured = (dat$estimate_B27001_005 + dat$estimate_B27001_008 +
+                      dat$estimate_B27001_011 + dat$estimate_B27001_014 + dat$estimate_B27001_017 +
+                      dat$estimate_B27001_020 +  dat$estimate_B27001_023 + dat$estimate_B27001_026 +
+                      dat$estimate_B27001_029 + dat$estimate_B27001_033 + dat$estimate_B27001_036 +
+                      dat$estimate_B27001_039 + dat$estimate_B27001_042 + dat$estimate_B27001_045 +
+                      dat$estimate_B27001_048 + dat$estimate_B27001_051 + dat$estimate_B27001_054 +
+                      dat$estimate_B27001_057) / (dat$estimate_B01003_001)"))
 
     # Create string of variables for API call
     var_loc <- which(names(var_dict) %in% variables)
